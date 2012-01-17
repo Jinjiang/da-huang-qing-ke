@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<title>大黄，请客吧！ - 新年快乐 O(∩_∩)O~</title>
+<!-- <link rel="stylesheet" href="/s/css/base.css" /> -->
+<script src="easel.js"></script>
+
+</head>
+<body onload="init();" onmousedown="return false;">
+
+<div style="width: 800px; margin: auto;">
+
+	<canvas id="canvas" width="800" height="600"
+			style="border: 1px black solid;">
+	</canvas>
+
+	<p style="margin: 0 0 20px; text-align: right;">
+		<code style="font-size: 12px;">
+			{"Design": "Vincent", "Dev": "Jinks", "Date": "2012-01-17"}
+		</code>
+	</p>
+
+</div>
+
+<script>
+var stage;
+var icon;
+var button;
+var say1;
+var say2;
+var say3;
+var say4;
+var timer;
+
+function init() {
+	var canvas = document.getElementById('canvas');
+	stage = new Stage(canvas);
+
+	var data = {
+		images:[
+			"sequence/sqA.png",
+			"sequence/sqB.png",
+			"sequence/sqC.png"
+		],
+		frames:{width:200, height:235},
+		animations: {
+			normal: [0, 8],
+			action1: [9, 18],
+			action2: [19, 25]
+		}
+	};
+
+	var spriteSheet  = new SpriteSheet(data);
+
+	icon = new BitmapAnimation(spriteSheet);
+	icon.x = 300;
+	icon.y = 120;
+	
+	icon.gotoAndPlay(0);
+	stage.addChild(icon);
+
+	Ticker.setFPS(16);
+	Ticker.addListener(stage);
+
+	icon.tick = function () {
+		// console.log(icon.currentFrame);
+		if (timer > 0) {
+			timer--;
+			if (timer == 1) {
+				icon.gotoAndPlay(0);
+			}
+			return;
+		}
+		if (icon.currentFrame == 9) {
+			icon.gotoAndPlay(0);
+		}
+		if (icon.currentFrame == 18) {
+			icon.currentFrame = 0;
+			icon.paused = true;
+			timer = 16;
+		}
+		if (icon.currentFrame == 25) {
+			icon.currentFrame = 0;
+			icon.paused = true;
+			timer = 16;
+		}
+	}
+
+	initA();
+	initB();
+}
+
+function initA() {
+	var dataA = {
+		images:["button/dhqkbutton.png"],
+		frames:{width:462, height:175}
+	};
+
+	var spriteSheetA  = new SpriteSheet(dataA);
+
+	button = new BitmapAnimation(spriteSheetA);
+	button.y = 400;
+	button.x = 169;
+
+	button.gotoAndStop(0);
+	stage.addChild(button);
+	stage.enableMouseOver();
+
+	button.onMouseOver = function () {
+		button.gotoAndStop(2);
+	};
+	button.onMouseOut = function () {
+		button.gotoAndStop(0);
+	};
+	button.onPress = function () {
+		button.gotoAndStop(1);
+	};
+	button.onClick = function () {
+		button.gotoAndStop(2);
+		o();
+	};
+}
+
+function initB() {
+	say1 = new Bitmap('say/say1.png');
+	say2 = new Bitmap('say/say2.png');
+	say3 = new Bitmap('say/say3.png');
+	say4 = new Bitmap('say/say4.png');
+
+	say1.visible = say2.visible =
+	say3.visible = say4.visible = false;
+
+	say1.x = 80;
+	say3.x = 80;
+	say2.x = 500;
+	say4.x = 500;
+	say1.y = 0;
+	say2.y = 0;
+	say3.y = 180;
+	say4.y = 220;
+
+	stage.addChild(say1);
+	stage.addChild(say2);
+	stage.addChild(say3);
+	stage.addChild(say4);
+}
+
+function o() {
+	window['a' + (Math.ceil(Math.random() * 2))]();
+	window['b' + (Math.ceil(Math.random() * 4))]();
+}
+
+function a1() {
+	icon.gotoAndPlay(9);
+}
+
+function a2() {
+	icon.gotoAndPlay(19);
+}
+
+function b1() {
+	say1.visible = true;
+	setTimeout(function () {
+		say1.visible = false;
+	}, 1000);
+}
+
+function b2() {
+	say2.visible = true;
+	setTimeout(function () {
+		say2.visible = false;
+	}, 1000);
+}
+
+function b3() {
+	say3.visible = true;
+	setTimeout(function () {
+		say3.visible = false;
+	}, 1000);
+}
+
+function b4() {
+	say4.visible = true;
+	setTimeout(function () {
+		say4.visible = false;
+	}, 1000);
+}
+
+</script>
+
+</body>
+</html>
