@@ -7,18 +7,24 @@
 <title>大黄，请客吧！ - 新年快乐 O(∩_∩)O~</title>
 <!-- <link rel="stylesheet" href="/s/css/base.css" /> -->
 <script src="easel.js"></script>
+<style>
+#splash {margin: auto; text-align: center; font-family: LucidaGrande, "Microsoft JZhengHei"; font-size: 48px; width: 800px; height: 600px; line-height: 500px; border: 1px black solid;}
+#main {width: 800px; margin: auto; display: none;}
+#canvas {border: 1px black solid;}
+#footer {margin: 0 0 20px; text-align: right; font-size: 12px;}
+</style>
 
 </head>
 <body onload="init();" onmousedown="return false;">
 
-<div style="width: 800px; margin: auto;">
+<div id="splash"></div>
 
-	<canvas id="canvas" width="800" height="600"
-			style="border: 1px black solid;">
-	</canvas>
+<div id="main">
 
-	<p style="margin: 0 0 20px; text-align: right;">
-		<code style="font-size: 12px;">
+	<canvas id="canvas" width="800" height="600"></canvas>
+
+	<p id="footer">
+		<code>
 			{"Design": "Vincent", "Dev": "Jinks", "Date": "2012-01-17"}
 		</code>
 	</p>
@@ -27,6 +33,8 @@
 
 <script>
 var stage;
+var spriteSheet;
+var spriteSheetA;
 var icon;
 var button;
 var say1;
@@ -34,6 +42,11 @@ var say2;
 var say3;
 var say4;
 var timer;
+var queue = 10;
+
+var splash;
+var progress;
+var timer2;
 
 function init() {
 	var canvas = document.getElementById('canvas');
@@ -53,7 +66,7 @@ function init() {
 		}
 	};
 
-	var spriteSheet  = new SpriteSheet(data);
+	spriteSheet  = new SpriteSheet(data);
 
 	icon = new BitmapAnimation(spriteSheet);
 	icon.x = 300;
@@ -91,6 +104,7 @@ function init() {
 
 	initA();
 	initB();
+	initQ();
 }
 
 function initA() {
@@ -99,7 +113,7 @@ function initA() {
 		frames:{width:462, height:175}
 	};
 
-	var spriteSheetA  = new SpriteSheet(dataA);
+	spriteSheetA  = new SpriteSheet(dataA);
 
 	button = new BitmapAnimation(spriteSheetA);
 	button.y = 400;
@@ -130,6 +144,21 @@ function initB() {
 	say3 = new Bitmap('say/say3.png');
 	say4 = new Bitmap('say/say4.png');
 
+	queue = 4;
+	say1.image.onload =
+	say2.image.onload =
+	say3.image.onload =
+	say4.image.onload = function () {
+		console.log('load', this);
+		queue--;
+	};
+	say1.image.onerror =
+	say2.image.onerror =
+	say3.image.onerror =
+	say4.image.onerror = function () {
+		loadError();
+	};
+
 	say1.visible = say2.visible =
 	say3.visible = say4.visible = false;
 
@@ -146,6 +175,34 @@ function initB() {
 	stage.addChild(say2);
 	stage.addChild(say3);
 	stage.addChild(say4);
+}
+
+function initQ() {
+	splash = document.getElementById('splash');
+	progress = 0;
+	timer2 = setInterval(q, 100);
+}
+
+function q() {
+	var TXT = 'Loading......';
+	var length = TXT.length;
+	progress++;
+	if (progress == length) {
+		progress = 0;
+	}
+	splash.innerHTML = TXT.substr(0, progress);
+	console.log(spriteSheet.complete, spriteSheet.complete, queue);
+	if (spriteSheet.complete && spriteSheet.complete && queue == 0) {
+		clearInterval(timer2);
+		splash.style.display = 'none';
+		main.style.display = 'block';
+	}
+}
+
+function loadError() {
+	alert('Error');
+	clearInterval(timer2);
+	splash.innerHTML = 'Error, please REFRESH this page later.';
 }
 
 function o() {
