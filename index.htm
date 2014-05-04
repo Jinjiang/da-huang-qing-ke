@@ -5,21 +5,46 @@
 
 <meta charset="utf-8" />
 <title>大黄，请客吧！ - 新年快乐 O(∩_∩)O~</title>
-<!-- <link rel="stylesheet" href="/s/css/base.css" /> -->
-<script src="easel.js"></script>
 <style>
-#splash {margin: auto; text-align: center; font-family: LucidaGrande, "Microsoft JZhengHei"; font-size: 48px; width: 800px; height: 600px; line-height: 500px; border: 1px black solid;}
-#main {width: 800px; margin: auto; display: none;}
+body {font-family: "Lucida Grande", "Microsoft JhengHei";}
+#main {width: 800px; margin: auto; position: relative;}
+#splash {position: absolute; top: 0; left: 0; width: 800px; height: 600px;}
+#splash {border: 1px black solid; background-color: rgba(255, 255, 255, 0.9);}
+#loading {font-size: 48px; text-align: center; margin: 160px auto 80px;}
+#queue {margin: 20px 0 0 280px; width: 400px;}
+#queue {font-size: 16px; line-height: 1.5; color: #666; list-style: square;}
 #canvas {border: 1px black solid;}
 #footer {margin: 0 0 20px; text-align: right; font-size: 12px;}
+#splash {
+	-webkit-transition: opacity 1s;
+	-moz-transition: opacity 1s;
+	-o-transition: opacity 1s;
+	-ms-transition: opacity 1s;
+	transition: opacity 1s;
+}
+
+#v {left: 255px;}
+#p {left: 330px;}
+.vp {position: absolute; top: 457px; font-size: 32px; color: #FFF000; text-shadow: 0 3px 5px rgba(0, 0, 0, 0.5); -webkit-transform-origin: center center; -webkit-animation: rotate 1s infinite linear;}
+.vp.active {top: 472px;}
+@-webkit-keyframes rotate {
+    0% {-webkit-transform: rotate(0deg) translate(0, -2px);}
+    100% {-webkit-transform: rotate(360deg) translate(0, -2px);}
+}
+#vp2014 {position: absolute; width: 320px; bottom: 200px; left: 240px; -webkit-transition: all 1s 1s;}
+#vp2014.loaded {bottom: 22px; left: 2px; width: 160px;}
 </style>
+<script src="easel.js"></script>
 
 </head>
-<body onload="init();" onmousedown="return false;">
-
-<div id="splash"></div>
+<body onmousedown="return false;">
 
 <div id="main">
+
+	<div id="splash">
+		<div id="loading">Loading</div>
+		<ul id="queue"></ul>
+	</div>
 
 	<canvas id="canvas" width="800" height="600"></canvas>
 
@@ -29,12 +54,14 @@
 		</code>
 	</p>
 
+    <span id="v" class="vp">(V)</span>
+    <span id="p" class="vp">(P)</span>
+    <img id="vp2014" src="vp.jpg">
+
 </div>
 
 <script>
 var stage;
-var spriteSheet;
-var spriteSheetA;
 var icon;
 var button;
 var say1;
@@ -42,16 +69,45 @@ var say2;
 var say3;
 var say4;
 var timer;
-var queue = 10;
 
-var splash;
-var progress;
-var timer2;
+var splash = document.getElementById('splash');
+var loading = document.getElementById('loading');
+var queue = document.getElementById('queue');
+
+var loadingStatus = 7;
+var loadingTimer;
+var loadingQueue = [];
+var queueStatus;
+
+var vps;
 
 function init() {
+	vps = document.querySelectorAll('.vp');
 	var canvas = document.getElementById('canvas');
 	stage = new Stage(canvas);
 
+	initL();
+	initO();
+	initA();
+	initB();
+}
+
+function initL() {
+	var BASE_TXT = 'Loading......';
+	var length = BASE_TXT.length;
+
+	function next() {
+		loadingStatus++;
+		if (loadingStatus == length) {
+			loadingStatus = 7;
+		}
+		loading.innerHTML = BASE_TXT.substr(0, loadingStatus);
+	}
+
+	loadingTimer = setInterval(next, 300);
+}
+
+function initO() {
 	var data = {
 		images:[
 			"sequence/sqA.png",
@@ -66,7 +122,11 @@ function init() {
 		}
 	};
 
-	spriteSheet  = new SpriteSheet(data);
+	var spriteSheet  = new SpriteSheet(data);
+
+	for (var i in spriteSheet._images) {
+		loadImage(spriteSheet._images[i]);
+	}
 
 	icon = new BitmapAnimation(spriteSheet);
 	icon.x = 300;
@@ -79,7 +139,6 @@ function init() {
 	Ticker.addListener(stage);
 
 	icon.tick = function () {
-		// console.log(icon.currentFrame);
 		if (timer > 0) {
 			timer--;
 			if (timer == 1) {
@@ -101,10 +160,6 @@ function init() {
 			timer = 16;
 		}
 	}
-
-	initA();
-	initB();
-	initQ();
 }
 
 function initA() {
@@ -113,7 +168,11 @@ function initA() {
 		frames:{width:462, height:175}
 	};
 
-	spriteSheetA  = new SpriteSheet(dataA);
+	var spriteSheetA  = new SpriteSheet(dataA);
+
+	for (var i in spriteSheetA._images) {
+		loadImage(spriteSheetA._images[i]);
+	}
 
 	button = new BitmapAnimation(spriteSheetA);
 	button.y = 400;
@@ -123,19 +182,27 @@ function initA() {
 	stage.addChild(button);
 	stage.enableMouseOver();
 
-	button.onMouseOver = function () {
-		button.gotoAndStop(2);
-	};
-	button.onMouseOut = function () {
-		button.gotoAndStop(0);
-	};
-	button.onPress = function () {
-		button.gotoAndStop(1);
-	};
-	button.onClick = function () {
-		button.gotoAndStop(2);
-		o();
-	};
+    button.onMouseOver = function () {
+        button.gotoAndStop(2);
+        vps[0].className = 'vp hover';
+        vps[1].className = 'vp hover';
+    };
+    button.onMouseOut = function () {
+        button.gotoAndStop(0);
+        vps[0].className = 'vp';
+        vps[1].className = 'vp';
+    };
+    button.onPress = function () {
+        button.gotoAndStop(1);
+        vps[0].className = 'vp active';
+        vps[1].className = 'vp active';
+    };
+    button.onClick = function () {
+        button.gotoAndStop(2);
+        vps[0].className = 'vp';
+        vps[1].className = 'vp';
+        o();
+    };
 }
 
 function initB() {
@@ -144,20 +211,10 @@ function initB() {
 	say3 = new Bitmap('say/say3.png');
 	say4 = new Bitmap('say/say4.png');
 
-	queue = 4;
-	say1.image.onload =
-	say2.image.onload =
-	say3.image.onload =
-	say4.image.onload = function () {
-		console.log('load', this);
-		queue--;
-	};
-	say1.image.onerror =
-	say2.image.onerror =
-	say3.image.onerror =
-	say4.image.onerror = function () {
-		loadError();
-	};
+	loadImage(say1.image);
+	loadImage(say2.image);
+	loadImage(say3.image);
+	loadImage(say4.image);
 
 	say1.visible = say2.visible =
 	say3.visible = say4.visible = false;
@@ -177,75 +234,86 @@ function initB() {
 	stage.addChild(say4);
 }
 
-function initQ() {
-	splash = document.getElementById('splash');
-	progress = 0;
-	timer2 = setInterval(q, 100);
-}
-
-function q() {
-	var TXT = 'Loading......';
-	var length = TXT.length;
-	progress++;
-	if (progress == length) {
-		progress = 0;
-	}
-	splash.innerHTML = TXT.substr(0, progress);
-	console.log(spriteSheet.complete, spriteSheet.complete, queue);
-	if (spriteSheet.complete && spriteSheet.complete && queue == 0) {
-		clearInterval(timer2);
-		splash.style.display = 'none';
-		main.style.display = 'block';
-	}
-}
-
-function loadError() {
-	alert('Error');
-	clearInterval(timer2);
-	splash.innerHTML = 'Error, please REFRESH this page later.';
-}
-
 function o() {
-	window['a' + (Math.ceil(Math.random() * 2))]();
-	window['b' + (Math.ceil(Math.random() * 4))]();
+
+	var func = {
+		a1: function () {
+			icon.gotoAndPlay(9);
+		},
+		a2: function () {
+			icon.gotoAndPlay(19);
+		},
+		b1: function () {
+			say1.visible = true;
+			setTimeout(function () {
+				say1.visible = false;
+			}, 1000);
+		},
+		b2: function () {
+			say2.visible = true;
+			setTimeout(function () {
+				say2.visible = false;
+			}, 1000);
+		},
+		b3: function () {
+			say3.visible = true;
+			setTimeout(function () {
+				say3.visible = false;
+			}, 1000);
+		},
+		b4: function () {
+			say4.visible = true;
+			setTimeout(function () {
+				say4.visible = false;
+			}, 1000);
+		}
+	};
+	
+	func['a' + (Math.ceil(Math.random() * 2))]();
+	func['b' + (Math.ceil(Math.random() * 4))]();
+}
+	
+function loadImage(image) {
+	var length = loadingQueue.length;
+	var li = document.createElement('li');
+
+	function checkLoading() {
+		for (var i = loadingQueue.length - 1; i >= 0; i--) {
+			if (loadingQueue[i]) {
+				return;
+			}
+		};
+		splash.style.opacity = 0;
+		setTimeout(function () {
+			splash.style.display = 'none';
+			document.getElementById('vp2014').className = 'loaded';
+			clearInterval(loadingTimer);
+		}, 1000);
+	}
+
+	li.innerHTML = image.src.replace(/.+\//i, '') + '<span></span>';
+	queue.appendChild(li);
+	loadingQueue.push(image);
+	image.addEventListener('load', function () {
+		loadingQueue[length] = null;
+		li.lastChild.innerHTML = ' [OK]';
+		checkLoading();
+	});
+	image.addEventListener('error', function () {
+		li.lastChild.innerHTML = ' [ERROR]';
+		li.lastChild.style.color = 'red';
+		if (queueStatus) {
+			return;
+		}
+		var newLi = document.createElement('li');
+		newLi.innerHTML = 'ERROR: please refresh this page again!';
+		newLi.style.color = 'black';
+		queue.insertBefore(newLi, queue.firstChild);
+		queueStatus = 1;
+	});
 }
 
-function a1() {
-	icon.gotoAndPlay(9);
-}
-
-function a2() {
-	icon.gotoAndPlay(19);
-}
-
-function b1() {
-	say1.visible = true;
-	setTimeout(function () {
-		say1.visible = false;
-	}, 1000);
-}
-
-function b2() {
-	say2.visible = true;
-	setTimeout(function () {
-		say2.visible = false;
-	}, 1000);
-}
-
-function b3() {
-	say3.visible = true;
-	setTimeout(function () {
-		say3.visible = false;
-	}, 1000);
-}
-
-function b4() {
-	say4.visible = true;
-	setTimeout(function () {
-		say4.visible = false;
-	}, 1000);
-}
-
+init();
 </script>
 
 </body>
